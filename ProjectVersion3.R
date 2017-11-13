@@ -317,3 +317,29 @@ df_GoogleSearch <- df_GoogleSearch[nrow(df_GoogleSearch):1,]
 correlation(df_GoogleSearch$Volume, df_bitcoin[is.element(df_bitcoin$Date, df_GoogleSearch$Date),]$Close)
 # Let's check everything is OK
 # Save Bitcoin historical price to file named bitcoin_historical_price.csv (in the working directory)
+
+## Add Candle Plot for bit coin And Ethereum
+#install.packages('plotly)
+library(plotly)
+library(quantmod)
+# custom colors
+## Candle Plot for Bitcoin Last 30 days
+##Barlarin uzerine gelindiginde gosterilen degelerin mean, max, median gibi degerleri gosterdigini ekleyemedim..
+i <- list(line = list(color = '#FFD700'))
+d <- list(line = list(color = '#0000ff'))
+df_bitcoin_Last30 <- head(df_bitcoin, n = 30)
+p <- df_bitcoin_Last30 %>%
+  plot_ly(x = df_bitcoin_Last30$Date, type="candlestick",
+          open = df_bitcoin_Last30$Open, close = df_bitcoin_Last30$Close,
+          high = df_bitcoin_Last30$High, low = df_bitcoin_Last30$Low,
+          increasing = i, decreasing = d)
+  layout(title = "Candlestick Chart For Bitcoin: Last 30 Days")
+  print(p)
+## Candle Plot for Bitcoin Whole Data sets
+p <- df_bitcoin %>%
+    plot_ly(x = df_bitcoin$Date, type="candlestick",
+            open = df_bitcoin$Open, close = df_bitcoin$Close,
+            high = df_bitcoin$High, low = df_bitcoin$Low) %>%
+  add_lines(y = df_bitcoin$Open, line = list(color = 'black', width = 0.75)) %>%
+  layout(title= "Bitcoin Candlestick Chart", showlegend = TRUE)
+print(p)
