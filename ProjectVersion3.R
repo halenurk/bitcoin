@@ -1,7 +1,8 @@
 
-  # An Exploration on cryptocurrencies
-  # Clean R environment, Remove everything from environment
-  rm(list=ls(all=TRUE)) 
+# An Exploration on cryptocurrencies
+# Clean R environment, Remove everything from environment
+rm(list=ls(all=TRUE))
+setwd("C:/Users/Enespc/Desktop/HASAN/Introduction to Data Analysis/project")
 
 # Install required packages
 # rvest: easy web scraping with R; https://blog.rstudio.com/2014/11/24/rvest-easy-web-scraping-with-r/
@@ -10,6 +11,8 @@
 # install.packages('plotrix')
 # Treemaps display hierarchical data as a set of nested rectangles.
 # install.packages("treemap")
+#install.packages('plotly)
+
 
 # Define URL where retrieve cryptocurrencies datas, the URL is coinmarketcap.com
 url_cryptocurrencies <- "https://coinmarketcap.com/currencies/views/all/"
@@ -24,7 +27,8 @@ library(dplyr)
 library(treemap)
 library(ggplot2)
 library(corrplot)
-
+library(plotly)
+library(quantmod)
 
 # Read the price table
 # The data, CryptoCurrency Market Capitalizations (CMC) price chart, is "read" from their website to df_cryptocurrencies dataframe
@@ -78,6 +82,8 @@ typeof(df_allcryptocurrencies$marketcap)
 # Let's see how our data frame, df_allcryptocurrencies looks
 head(df_allcryptocurrencies, 15)
 dim(df_allcryptocurrencies)
+# How many coins are there in the market?
+nrow(df_allcryptocurrencies)
 
 # Market share of all cryto currencies as treemap
 df_allcryptocurrencies$formatted_market_cap <-  paste0(df_allcryptocurrencies$name,'\n','$',format(df_allcryptocurrencies$marketcap,big.mark = ',',scientific = F, trim = T))
@@ -90,7 +96,6 @@ summary(df_allcryptocurrencies$change_1h)
 sd(df_allcryptocurrencies$change_1h, na.rm=TRUE)
 summary(df_allcryptocurrencies$change_24h)
 sd(df_allcryptocurrencies$change_24h, na.rm=TRUE)
-##In here, what is X and Y value?
 boxplot(df_allcryptocurrencies$change_7d, horizontal=TRUE, col= c("red"), main="Box plot of An Evolution of Currencies in 7 days")
 hist(df_allcryptocurrencies$change_7d, col="purple",main="Histogram of An Evolution of Currencies in 7 days",xlab="An Evolution of Currencies in 7 days")
 summary(df_allcryptocurrencies$change_7d)
@@ -223,21 +228,20 @@ df_litecoin$Date <- as.Date(df_litecoin$Date)
 
 # Explore historical evolution of Bitcoin price
 # Plot bitcoin price versus time
-## Add title and x labels
-ggplot(df_bitcoin,aes(Date,Close)) + geom_line() + 
-  labs(title = 'Bitcoin Price', y="Price in USD", x = "Date")+
-  theme(plot.title = element_text(hjust = 0.5))
+p_01 <- ggplot(data = df_bitcoin)
+p_01 + labs(title = "History of Bitcoin Price") + labs(x = "Date") + labs(y = "Price in USD") + geom_line(aes(x = Date, y = Close)) 
+
+
 summary(df_bitcoin$Percentage)
 sd(df_bitcoin$Percentage)
 # Bitcoin is very volatile: it has gained up to 23% or lost up to 43% in only one day.
 # candle plot eklenebilir..finansc�lar sever
 
+
 # Explore historical evolution of Ethereum price
 # Plot Ethereum price versus time
-## Add title and x labels
-ggplot(df_ethereum,aes(Date,Close)) + geom_line() + 
-  labs(title = 'Ethereum Price', y="Price in USD", x = "Date")+
-  theme(plot.title = element_text(hjust = 0.5))
+p <- ggplot(data = df_ethereum)
+p + geom_line(aes(x = Date, y = Close)) + labs(x = "Date") + labs(y = "Price in USD") + labs(title = "History of Ethereum Price")
 summary(df_ethereum$Percentage)
 sd(df_ethereum$Percentage)
 # Ethereum is also very volatile: it has gained up to 72% or lost up to 51% in only one day.
@@ -245,13 +249,13 @@ sd(df_ethereum$Percentage)
 # Correlation between cryptocurrencies
 # Correlation of Market Cap
 # If Bitcoin's market cap rises, how do its competitors behave ?
-correlation <- cor(cbind(Bitcoin = df_bitcoin[df_bitcoin$Date > as.Date('2017-01-20'),]$Close, Ethereum = df_ethereum[df_ethereum$Date > as.Date('2017-01-20'),]$Close, Ripple = df_ripple[df_ripple$Date > as.Date('2017-01-20'),]$Close, Litecoin = df_litecoin[df_litecoin$Date > as.Date('2017-01-20'),]$Close, Bitcoincash = df_bitcoincash$Close))
+correlation <- cor(cbind(Bitcoin = df_bitcoin[df_bitcoin$Date > as.Date('2017-07-23'),]$Close, Ethereum = df_ethereum[df_ethereum$Date > as.Date('2017-07-23'),]$Close, Ripple = df_ripple[df_ripple$Date > as.Date('2017-07-23'),]$Close, Litecoin = df_litecoin[df_litecoin$Date > as.Date('2017-07-23'),]$Close, Bitcoincash = df_bitcoincash[df_bitcoincash$Date > as.Date('2017-07-23'),]$Close))
 corrplot(correlation)
 cor(correlation)
 # The market capitalizations of these five cryptocurrencies are highly correlated. 
 
 # Correlation of volatility between cryptocurrencies
-correlation <- cor(cbind(Bitcoin = df_bitcoin[df_bitcoin$Date > as.Date('2017-01-20'),]$Percentage, Ethereum = df_ethereum[df_ethereum$Date > as.Date('2017-01-20'),]$Percentage, Ripple = df_ripple[df_ripple$Date > as.Date('2017-01-20'),]$Percentage, Litecoin = df_litecoin[df_litecoin$Date > as.Date('2017-01-20'),]$Percentage, Bitcoincash = df_bitcoincash$Percentage))
+correlation <- cor(cbind(Bitcoin = df_bitcoin[df_bitcoin$Date > as.Date('2017-07-23'),]$Percentage, Ethereum = df_ethereum[df_ethereum$Date > as.Date('2017-07-23'),]$Percentage, Ripple = df_ripple[df_ripple$Date > as.Date('2017-07-23'),]$Percentage, Litecoin = df_litecoin[df_litecoin$Date > as.Date('2017-07-23'),]$Percentage, Bitcoincash = df_bitcoincash[df_bitcoincash$Date > as.Date('2017-07-23'),]$Percentage))
 corrplot(correlation)
 
 # The correlations are much weaker except between Bitcoin and Bitcoincash
@@ -308,7 +312,7 @@ legend("topleft", legend=c("bitcoin", "Ethereum", "bitcoincash", "ripple", "lite
 # In here, we try to define the correlation between bitcoin and google search:
 # Import Google search  historical price datas. Data yi google dan otomatik cekemedim malesef, library(gtrendsR) paketini
 #yuklememe ragmen calismadi, bende maual cektim datayi. Bundan dolayi bu kod sizde calismaya bilir, once google trend datasini download etmeniz gerekiyor.
-df_GoogleSearch <- read.csv('/Users/eminedoganay/Desktop/multiTimeline.csv', header = F, stringsAsFactors = F)[c(-1,-2),]
+df_GoogleSearch <- read.csv('multiTimeline.csv', header = F, stringsAsFactors = F)[c(-1,-2),]
 colnames(df_GoogleSearch) <- c('Date', 'Volume')
 df_GoogleSearch$Date <- as.Date(df_GoogleSearch$Date)
 df_GoogleSearch$Volume <- as.numeric(df_GoogleSearch$Volume)
@@ -319,9 +323,6 @@ correlation(df_GoogleSearch$Volume, df_bitcoin[is.element(df_bitcoin$Date, df_Go
 # Save Bitcoin historical price to file named bitcoin_historical_price.csv (in the working directory)
 
 ## Add Candle Plot for bit coin And Ethereum
-#install.packages('plotly)
-library(plotly)
-library(quantmod)
 # custom colors
 ## Candle Plot for Bitcoin Last 30 days
 ##Barlarin uzerine gelindiginde gosterilen degelerin mean, max, median gibi degerleri gosterdigini ekleyemedim..
@@ -332,14 +333,35 @@ p <- df_bitcoin_Last30 %>%
   plot_ly(x = df_bitcoin_Last30$Date, type="candlestick",
           open = df_bitcoin_Last30$Open, close = df_bitcoin_Last30$Close,
           high = df_bitcoin_Last30$High, low = df_bitcoin_Last30$Low,
-          increasing = i, decreasing = d)
+          increasing = i, decreasing = d) %>%
   layout(title = "Candlestick Chart For Bitcoin: Last 30 Days")
-  print(p)
+print(p)
 ## Candle Plot for Bitcoin Whole Data sets
 p <- df_bitcoin %>%
-    plot_ly(x = df_bitcoin$Date, type="candlestick",
-            open = df_bitcoin$Open, close = df_bitcoin$Close,
-            high = df_bitcoin$High, low = df_bitcoin$Low) %>%
+  plot_ly(x = df_bitcoin$Date, type="candlestick",
+          open = df_bitcoin$Open, close = df_bitcoin$Close,
+          high = df_bitcoin$High, low = df_bitcoin$Low) %>%
   add_lines(y = df_bitcoin$Open, line = list(color = 'black', width = 0.75)) %>%
   layout(title= "Bitcoin Candlestick Chart", showlegend = TRUE)
 print(p)
+
+## Linear Regression Added by Emine: 11/19/2017 Sunday
+# Linear regression analysis between Volume and Market.Cap, Volume and HighProce+Percentage+Market.Cap
+df_bitcoin_reg <- lm(Volume ~ Market.Cap, data=df_bitcoin) # regression formula
+# Summarize and print the results
+summary(df_bitcoin_reg) # show regression coefficients table
+summary(lm(Volume ~ Market.Cap + High + Percentage, data = df_bitcoin))
+## Logistic Regression Analysis..
+
+##predict the probability of bitcoin price with high-low, open-close, volume and percentage changing data
+# collapse all missing values to NA
+# run our regression model
+## Add increasing or decreasing information to bitcoin data sets
+df_bitcoin_Prediction<- df_bitcoin %>% mutate(Changing = ifelse(Percentage > 0, 1, ifelse(Percentage < 0, -1, 0)))
+# check levels of bitcoin whether or not it is increasing or decreasing
+df_bitcoin_Prediction$Changing <- factor(df_bitcoin_Prediction$Changing, levels=c(-1, 1, 0))
+PricePrediction <- glm(Changing~High+Low+Open+Close+Volume+Percentage,
+               data=df_bitcoin_Prediction, family="binomial")
+coef(summary(PricePrediction))
+
+##Define relationships between the cryptocurriencies:
