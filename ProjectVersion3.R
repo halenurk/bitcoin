@@ -12,7 +12,7 @@ setwd("C:/Users/Enespc/Desktop/HASAN/Introduction to Data Analysis/project")
 # Treemaps display hierarchical data as a set of nested rectangles.
 # install.packages("treemap")
 #install.packages('plotly)
-
+#install.packages('gclus')
 
 # Define URL where retrieve cryptocurrencies datas, the URL is coinmarketcap.com
 url_cryptocurrencies <- "https://coinmarketcap.com/currencies/views/all/"
@@ -347,21 +347,62 @@ print(p)
 
 ## Linear Regression Added by Emine: 11/19/2017 Sunday
 # Linear regression analysis between Volume and Market.Cap, Volume and HighProce+Percentage+Market.Cap
-df_bitcoin_reg <- lm(Volume ~ Market.Cap, data=df_bitcoin) # regression formula
-# Summarize and print the results
-summary(df_bitcoin_reg) # show regression coefficients table
-summary(lm(Volume ~ Market.Cap + High + Percentage, data = df_bitcoin))
-## Logistic Regression Analysis..
+library(dplyr)
+df_bitcoin_RegModel <- lm(formula = Close ~ High, data=df_bitcoin) # regression formula
+summary(df_bitcoin_RegModel) # show regression coefficients table
+plot(df_bitcoin$Close, df_bitcoin$High)
+abline(df_bitcoin_RegModel,col ='red')
 
+# Summarize and print the results
+df_bitcoin_RegModel2 <- lm(Volume ~ Market.Cap + High + Percentage, data = df_bitcoin)
+summary(df_bitcoin_RegModel2) # show regression coefficients table
+plot(df_bitcoin_RegModel2, which= 1)
+
+## Logistic Regression Analysis..
 ##predict the probability of bitcoin price with high-low, open-close, volume and percentage changing data
 # collapse all missing values to NA
 # run our regression model
 ## Add increasing or decreasing information to bitcoin data sets
-df_bitcoin_Prediction<- df_bitcoin %>% mutate(Changing = ifelse(Percentage > 0, 1, ifelse(Percentage < 0, -1, 0)))
+df_bitcoin_Prediction <- df_bitcoin %>% mutate(Changing = ifelse(Percentage > 0, 1, ifelse(Percentage < 0, -1, 0)))
 # check levels of bitcoin whether or not it is increasing or decreasing
 df_bitcoin_Prediction$Changing <- factor(df_bitcoin_Prediction$Changing, levels=c(-1, 1, 0))
 PricePrediction <- glm(Changing~High+Low+Open+Close+Volume+Percentage,
                data=df_bitcoin_Prediction, family="binomial")
+anova(PricePrediction)
+summary(PricePrediction)
 coef(summary(PricePrediction))
-
+predict(PricePrediction, type="response") # predicted values
+residuals(PricePrediction, type="deviance") # residuals
+cdplot(Changing~Low,  data=df_bitcoin_Prediction)
 ##Define relationships between the cryptocurriencies:
+
+
+################
+library(lattice)
+pairs(~Open+High+Close+Low +Percentage, data=df_bitcoin_Prediction,
+                   main="Bitcoin Price Changing")
+super.sym <- trellis.par.get("superpose.symbol")
+splom(df_bitcoin_Prediction[c(2,3,4,5,8)], groups = df_bitcoin_Prediction$Changing, data=df_bitcoin_Prediction,
+      panel=panel.superpose, 
+      key=list(title="Bitcoin Price Changing",
+               columns=3,
+               points=list(pch=super.sym$pch[1:3],
+                           col=super.sym$col[1:3]),
+               text=list(c("1 Increasing","-1 Decreasing","0 Stable"))))
+
+# Scatterplot Matrices from the car Package
+## 
+library(car)
+scatterplotMatrix(~ ~Open+High+Close+Low +Percentage | Changing, smoother=FALSE, 
+                  by.group=TRUE, transform=TRUE, data=df_bitcoin_Prediction, main="Bitcoin Price Changing")
+
+library(gclus)# The lattice package provides options to condition the scatterplot matrix on a factor.
+dta <- df_bitcoin_Prediction[c(2,3,4,5,8)] # get data 
+dta.r <- abs(cor(dta)) # get correlations
+dta.col <- dmat.color(dta.r) # get colors
+# reorder variables so those with highest correlation
+# are closest to the diagonal
+dta.o <- order.single(dta.r) 
+cpairs(dta, dta.o, panel.colors=dta.col, gap=.5,
+       main="Variables Ordered and Colored by Correlation" )
+###################
